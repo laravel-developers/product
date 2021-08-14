@@ -1,8 +1,8 @@
 <template>
   <div id="app">
     <img alt="Vue logo" src="./assets/logo.png">
-    <products :msg="msg" />
     <h3>{{ name }}</h3>
+    <products :msg="msg" />
   </div>
 </template>
 

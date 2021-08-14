@@ -6,36 +6,39 @@
 <!--        :can-cancel="false"-->
 <!--        :is-full-page="true"-->
 <!--    />-->
-    <table class="table table-hover" v-if="!isLoading">
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Nomi</th>
-          <th>Narxi</th>
-          <th>Yaratilgan sana</th>
-          <th>Amal qilish muddati (oy)</th>
-          <th>Amallar</th>
+    <button class="btn btn-info float-right" @click="">Mahsulot qo`shish</button>
+
+  <table class="table table-hover" v-if="!isLoading">
+    <thead>
+    <tr>
+        <th>#</th>
+        <th>Nomi</th>
+        <th>Narxi</th>
+        <th>Yaratilgan sana</th>
+        <th>Amal qilish muddati (oy)</th>
+        <th>Amallar</th>
+      </tr>
+    </thead>
+    <tbody>
+      <template v-if="products.length">
+        <tr v-for="product in products" :key="product.id">
+          <td>{{ product.id }}</td>
+          <td><button class="btn"  @click="show(product.id)">{{ product.name }}</button></td>
+          <td>{{ format_num(product.price) }}</td>
+          <td>{{ format_date(product.created_date) }}</td>
+          <td>{{ product.term }}</td>
+          <td>
+            <button class="btn btn-danger mr-2" @click="destroy(product.id)">O'chirish</button>
+            <button class="btn btn-info" @click="edit1(product.id)">Tahrirlash</button>
+          </td>
         </tr>
-      </thead>
-      <tbody>
-        <template v-if="products.length">
-          <tr v-for="product in products" :key="product.id">
-            <td>{{ product.id }}</td>
-            <td><a href="#">{{ product.name }}</a></td>
-            <td>{{ product.price }}</td>
-            <td>{{ product.created_date }}</td>
-            <td>{{ product.term }}</td>
-            <td>
-              <button class="btn btn-danger" @click="destroy(product.id)">O'chirish</button>
-              <a href=""><button class="btn btn-info" @click="update(product.id)">Tahrirlash</button></a>
-            </td>
-          </tr>
-        </template>
-        <template v-else>
-          <tr><td colspan="5">Ma`lumot yo'q</td></tr>
-        </template>
-      </tbody>
-    </table>
+      </template>
+      <template v-else>
+        <tr><td colspan="5">Ma`lumot yo'q</td></tr>
+      </template>
+    </tbody>
+  </table>
+
     <h3>Product qo'shish</h3>
     <form class="form container-fluid px-5" action="#">
       <div class="row">
@@ -67,36 +70,50 @@
       <button class="float-right" @click="save()">Saqlash</button>
     </form>
 
-<!--    modal-->
-    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal">
-      Launch demo modal
-    </button>
-
-    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button>
+  <el-dialog
+        title="Tips"
+        :visible.sync="dialogVisible"
+        width="30%"
+    >
+      <h3>Mahsulotni tahrirlash</h3>
+        <div class="row">
+          <div class="col-sm-4">
+            <div class="form-group">
+              <label for="name1">Nomi</label>
+              <input type="text" id="name1" v-model="formEdit.name" class="form-control">
+            </div>
           </div>
-          <div class="modal-body">
-            ...
+          <div class="col-sm-4">
+            <div class="form-group">
+              <label for="price1">Narxi</label>
+              <input id="price1" type="number" v-model="formEdit.price" class="form-control">
+            </div>
           </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-            <button type="button" class="btn btn-primary">Save changes</button>
+          <div class="col-sm-4">
+            <div class="form-group">
+              <label for="created_date1">Yaratilgan sana</label>
+              <input id="created_date1" type="date" v-model="formEdit.created_date" class="form-control">
+            </div>
+          </div>
+          <div class="col-sm-4">
+            <div class="form-group">
+              <label for="term1">Yaroqlilik muddati (oy)</label>
+              <input id="term1" type="number" v-model="formEdit.term" class="form-control">
+            </div>
           </div>
         </div>
-      </div>
-    </div>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="dialogVisible = false">Cancel</el-button>
+        <el-button type="primary" @click="update(formEdit.id); dialogVisible = false">Confirm</el-button>
+      </span>
+  </el-dialog>
+
   </div>
 </template>
 
 <script>
 import 'vue-loading-overlay/dist/vue-loading.css'
-
+import moment from 'moment'
 import axios from 'axios'
 export default {
   name: 'Products',
@@ -105,6 +122,7 @@ export default {
     return {
       products: [],
       isLoading: true,
+      dialogVisible: false,
       form: {
         name: '',
         price: '',
@@ -112,6 +130,7 @@ export default {
         term: ''
       },
       formEdit: {
+        id: '',
         name: '',
         price: '',
         created_date: '',
@@ -126,8 +145,22 @@ export default {
     this.getItems()
   },
   methods: {
-    update(id){
-      axios.post('http://product.local/products/' + id, this.form).then(() => {
+    edit1(id) {
+      axios.get('http://product.local/products/' + id).then((res) => {
+        this.formEdit.id = id
+        this.formEdit.name = res.data.name
+        this.formEdit.price = res.data.price
+        this.formEdit.term = res.data.term
+        this.formEdit.created_date = res.data.created_date
+        this.dialogVisible = true
+      })
+      console.log(id)
+    },
+    show(){
+
+    },
+    update(){
+      axios.put('http://product.local/products/' + this.formEdit.id, this.formEdit).then(() => {
         this.getItems()
       }).finally(() => {
         this.isLoading = false
@@ -169,7 +202,17 @@ export default {
       this.form.created_date = ''
       this.form.name = ''
       this.form.price = ''
-    }
+    },
+    format_date(value){
+      if (value) {
+        return moment(String(value)).format('DD.MM.YYYY')
+      }
+      return value
+    },
+    format_num(number) {
+      let number1 = number;
+      return (new Intl.NumberFormat().format(number1))
+    },
   }
 
 }
