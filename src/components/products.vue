@@ -20,9 +20,7 @@
         <th>Amallar</th>
       </tr>
       <tr>
-<!--        <form >-->
           <th>
-<!--            <input type="text" name="id" class="form-control" id="id" placeholder="id" v-model="search">-->
           </th>
           <th>
             <input type="text" class="form-control" v-model="filter.name" @keyup.enter="getItems" placeholder="nomi" >
@@ -39,16 +37,13 @@
           <th>
             <button type="submit" class="btn btn-primary  active " @click="getItems"> Qidirish </button>
           </th>
-<!--        </form>-->
       </tr>
       </thead>
       <tbody>
       <template v-if="products.length">
-        <tr v-for="product in products" :key="product.id">
-          <td>{{ product.id }}</td>
-          <td>
-            <button class="btn" @click="show(product.id)">{{ product.name }}</button>
-          </td>
+        <tr v-for="(product, key) in products" :key="product.id">
+          <td>{{ key+1 }}</td>
+          <td>  <button class="btn" @click="show(product.id)">{{ product.name }}</button> </td>
           <td>{{ format_num(product.price) }}</td>
           <td>{{ format_date(product.created_date) }}</td>
           <td>{{ product.term }}</td>
@@ -75,8 +70,8 @@
       <div class="row">
         <div class="col-sm-4">
           <div class="form-group">
-            <label for="name1">Nomi</label>
-            <input type="text" id="name1" v-model="formEdit.name" class="form-control">
+            <label for="name">Nomi</label>
+            <input type="text" id="name" v-model="formEdit.name" class="form-control">
           </div>
         </div>
         <div class="col-sm-4">
@@ -184,7 +179,7 @@ export default {
 
     },
     update() {
-      axios.put('https://7b05d55f38ed.ngrok.io/products/' + this.formEdit.id, this.formEdit).then(() => {
+      axios.put('http://product.local/products/' + this.formEdit.id, this.formEdit).then(() => {
         this.getItems()
       }).finally(() => {
         this.isLoading = false
@@ -193,7 +188,7 @@ export default {
     },
     destroy(id) {
       if (confirm('Haqiqatan ham o\'chirmoqchimisiz')) {
-        axios.delete('https://7b05d55f38ed.ngrok.io/products/' + id).then(() => {
+        axios.delete('http://product.local/products/' + id).then(() => {
           this.getItems()
         })
       }
@@ -215,7 +210,7 @@ export default {
       })
     },
     saveEdit() {
-      axios.post('https://7b05d55f38ed.ngrok.io/products/', this.formEdit).then(() => {
+      axios.post('http://product.local/products/', this.formEdit).then(() => {
         this.getItems()
       }).finally(() => {
         this.isLoading = false
