@@ -1,13 +1,10 @@
 <template>
   <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png">
-    <h3>{{ name }}</h3>
-    <products :msg="msg" />
+    <router-view />
   </div>
 </template>
 
 <script>
-import Products from './components/products.vue'
 
 export default {
   name: 'App',
@@ -16,9 +13,6 @@ export default {
       msg: 'Zohid',
       name: 'Product project'
     }
-  },
-  components: {
-    Products
   },
   created() {
   },
